@@ -1,0 +1,8 @@
+/executors/
+!/executors/createReserveExecutors.exec.mjs
+!/executors/editReserveExecutors.exec.mjs
+!/executors/reserve.exec.template.mjs
+/node_modules/
+/temp/
+/.idea/
+!.gitkeep
