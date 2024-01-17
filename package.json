@@ -16,6 +16,6 @@
   "scripts": {
     "createReserveExecutors": "node executors/createReserveExecutors.exec.mjs",
     "list": "node executors/list.exec.mjs",
-    "runReserveExecutors": "node executors/runReserveExecutors.exec.mjs"
+    "runReserveExecutors": "sh scripts/run-all-executors.sh"
   }
 }

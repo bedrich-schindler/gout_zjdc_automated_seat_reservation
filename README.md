@@ -28,11 +28,12 @@ npm install
 npm run createReserveExecutors -- --list-file=temp/list.json
 ```
 
-3. Run reservation executors created in previous step:
+3. Run reservation executors created in previous step (currently implemented for MacOS only):
 
 ```sh
  npm run runReserveExecutors
  ```
+
 or run specific reservation executor:
 
 ```sh
