@@ -19,7 +19,7 @@ npm install
 1. List all events for specific artist and save its output to file (e.g. `temp/list.json`):
 
 ```sh
- npm run list -- --artist-name=divadlo-jary-cimrman --artist-code=pzfnuvf --number-of-seats-to-reserve=6 --prioritization-file=prioritization/zjdc.1.json
+ npm run list -- --artist-name=divadlo-jary-cimrman --artist-code=pzfnuvf --number-of-seats-to-reserve=2 --prioritization-file=prioritization/zjdc.1.json
  ```
 
 2. Create reservation executors for specific event based on list file from previous step and number of seats to reserve:

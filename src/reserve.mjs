@@ -10,7 +10,7 @@ import {
 import { getTicketStatus } from './utils/getTicketStatus.mjs';
 import { reserveSeats } from './utils/reserveSeats.mjs';
 
-const NUMBER_OF_SEATS_TO_RESERVE_LIMIT = 10;
+const NUMBER_OF_SEATS_TO_RESERVE_LIMIT = 4;
 
 export const reserve = async (
     eventTitle,
@@ -21,9 +21,8 @@ export const reserve = async (
     prioritization = null,
 ) => {
     // Initialize browser, context and page
-    const browser = await chromium.launch({ headless: false });
-    const context = await browser.newContext();
-    const page = await context.newPage();
+    const browser = await chromium.launch({ headless: false, timeout: 0 });
+    let page = await browser.newPage();
 
     // Generate random instance ID
     const instanceId = Math.random().toString(36).substring(7);
@@ -44,49 +43,65 @@ Instance: ${instanceId}
     // Run loop until tickets are ready to buy
     let reloadIndex = -1;
     while (true) {
-        const ticketStatus = await getTicketStatus(page, pageResponse);
-        console.log(`Status: ${ticketStatus} [${reloadIndex + 1}]`);
+        try {
+            const ticketStatus = await getTicketStatus(page, pageResponse);
+            console.log(`Status: ${ticketStatus} [${reloadIndex + 1}]`);
 
-        reloadIndex += 1;
+            reloadIndex += 1;
 
-        if (
-            ticketStatus === TS_SERVER_ERROR
-            || ticketStatus === TS_NOT_OPENED
-            || ticketStatus === TS_SOLD_OUT
-        ) {
-            pageResponse = await page.reload();
-            await page.waitForTimeout(500);
-            continue;
-        }
-
-        if (ticketStatus === TS_IN_QUEUE || ticketStatus === TS_LOADING) {
-            await page.waitForTimeout(250);
-            continue;
-        }
-
-        if (ticketStatus === TS_OPENED) {
-            const isSeatReservationSuccessful = await reserveSeats(page, numberOfSeatsToReserve, NUMBER_OF_SEATS_TO_RESERVE_LIMIT, prioritization);
-
-            if (isSeatReservationSuccessful) {
-                break;
-            } else {
+            if (
+                ticketStatus === TS_SERVER_ERROR
+                || ticketStatus === TS_NOT_OPENED
+                || ticketStatus === TS_SOLD_OUT
+            ) {
                 pageResponse = await page.reload();
-                await page.waitForTimeout(1000);
+                await page.waitForTimeout(500);
                 continue;
             }
-        }
 
-        try {
-            await page.screenshot({
-                fullPage: true,
-                path: `temp/screenshots/${eventLinkName}-${eventLinkCode}-${instanceId}-${ticketStatus}-${reloadIndex}.png`,
-            })
+            if (ticketStatus === TS_IN_QUEUE || ticketStatus === TS_LOADING) {
+                await page.waitForTimeout(250);
+                continue;
+            }
+
+            if (ticketStatus === TS_OPENED) {
+                const isSeatReservationSuccessful = await reserveSeats(page, numberOfSeatsToReserve, NUMBER_OF_SEATS_TO_RESERVE_LIMIT, prioritization);
+
+                if (isSeatReservationSuccessful) {
+                    break;
+                } else {
+                    pageResponse = await page.reload();
+                    await page.waitForTimeout(1000);
+                    continue;
+                }
+            }
+
+            try {
+                await page.screenshot({
+                    fullPage: true,
+                    path: `temp/screenshots/${eventLinkName}-${eventLinkCode}-${instanceId}-${ticketStatus}-${reloadIndex}.png`,
+                })
+            } catch (e) {
+                // Ignore error
+            }
+
+
+            await page.waitForTimeout(1500);
         } catch (e) {
-            // Ignore error
+            console.error('Exception:', e);
+            try {
+                await page.screenshot({
+                    fullPage: true,
+                    path: `temp/screenshots/${eventLinkName}-${eventLinkCode}-${instanceId}-exception-${reloadIndex}.png`,
+                })
+            } catch (e) {
+                // Ignore error
+            }
+
+            console.error('Status: Starting new page');
+            page = await browser.newPage();
+            pageResponse = await page.goto(`https://goout.net/cs/listky/${eventLinkName}/${eventLinkCode}?min=true`);
         }
-
-
-        await page.waitForTimeout(1500);
     }
 
     try {
