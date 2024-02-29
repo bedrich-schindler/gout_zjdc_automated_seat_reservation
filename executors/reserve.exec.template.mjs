@@ -7,6 +7,7 @@ const EVENT_LINK_CODE = '<EVENT_LINK_CODE>';
 const EVENT_DATETIME = '<EVENT_DATETIME>';
 const NUMBER_OF_SEATS_TO_RESERVE = '<NUMBER_OF_SEATS_TO_RESERVE>';
 const PRIORITIZATION_FILE_PATH = '<PRIORITIZATION_FILE_PATH>';
+const INSTANCE_ID = '<INSTANCE_ID>';
 
 (async () => {
     let prioritizationFileContentsJson = null;
@@ -28,5 +29,6 @@ const PRIORITIZATION_FILE_PATH = '<PRIORITIZATION_FILE_PATH>';
         EVENT_DATETIME,
         NUMBER_OF_SEATS_TO_RESERVE,
         prioritizationFileContentsJson,
+        INSTANCE_ID,
     );
 })();

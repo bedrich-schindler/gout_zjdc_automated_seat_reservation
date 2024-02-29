@@ -12,20 +12,50 @@ import { reserveSeats } from './utils/reserveSeats.mjs';
 
 const NUMBER_OF_SEATS_TO_RESERVE_LIMIT = 4;
 
+const DEFAULT_SCREEN_DIMENSIONS = {
+    width: 1920,
+    height: 1080,
+};
+const PAGE_CONFIGURATION = {
+    viewport: {
+        width: 480,
+        height: 560,
+    },
+};
+
+const getWindowPosition = (instanceId) => {
+    const instanceIndex = instanceId + 4;
+    const windowsPerLine = Math.ceil(DEFAULT_SCREEN_DIMENSIONS.width / PAGE_CONFIGURATION.viewport.width);
+    const windowsPerColumn = Math.ceil(DEFAULT_SCREEN_DIMENSIONS.height / PAGE_CONFIGURATION.viewport.height);
+
+    const x = instanceIndex % windowsPerLine * PAGE_CONFIGURATION.viewport.width;
+    const y = Math.floor(instanceIndex / windowsPerLine) * PAGE_CONFIGURATION.viewport.height;
+
+    return { x, y };
+}
+
 export const reserve = async (
     eventTitle,
     eventLinkName,
     eventLinkCode,
     eventDateTime,
     numberOfSeatsToReserve,
-    prioritization = null,
+    prioritization,
+    instanceId,
 ) => {
-    // Initialize browser, context and page
-    const browser = await chromium.launch({ headless: false, timeout: 0 });
-    let page = await browser.newPage();
-
     // Generate random instance ID
-    const instanceId = Math.random().toString(36).substring(7);
+    const instanceRandomId = Math.random().toString(36).substring(7);
+
+    // Initialize browser, context and page
+    const browser = await chromium.launch({
+        headless: false,
+        timeout: 0,
+        args: [
+           `--window-name="${eventTitle} | ${eventLinkName}-${eventLinkCode} | ${instanceRandomId}"`,
+            `--window-position=${getWindowPosition(instanceId).x},${getWindowPosition(instanceId).y}`,
+        ],
+    });
+    let page = await browser.newPage(PAGE_CONFIGURATION);
 
     console.log(`
 ==============================    
@@ -33,7 +63,7 @@ Event: ${eventTitle} (${eventLinkName}/${eventLinkCode})
 Date: ${eventDateTime}
 Seats to reserve: ${numberOfSeatsToReserve}
 Seats to reserve limit: ${NUMBER_OF_SEATS_TO_RESERVE_LIMIT}
-Instance: ${instanceId}
+Instance: #${instanceId} (#${instanceRandomId})
 ==============================
     `);
 
@@ -79,7 +109,7 @@ Instance: ${instanceId}
             try {
                 await page.screenshot({
                     fullPage: true,
-                    path: `temp/screenshots/${eventLinkName}-${eventLinkCode}-${instanceId}-${ticketStatus}-${reloadIndex}.png`,
+                    path: `temp/screenshots/${instanceId}-${eventLinkName}-${eventLinkCode}-${instanceRandomId}-${ticketStatus}-${reloadIndex}.png`,
                 })
             } catch (e) {
                 // Ignore error
@@ -92,14 +122,14 @@ Instance: ${instanceId}
             try {
                 await page.screenshot({
                     fullPage: true,
-                    path: `temp/screenshots/${eventLinkName}-${eventLinkCode}-${instanceId}-exception-${reloadIndex}.png`,
+                    path: `temp/screenshots/${instanceId}-${eventLinkName}-${eventLinkCode}-${instanceRandomId}-exception-${reloadIndex}.png`,
                 })
             } catch (e) {
                 // Ignore error
             }
 
             console.error('Status: Starting new page');
-            page = await browser.newPage();
+            page = await browser.newPage(PAGE_CONFIGURATION);
             pageResponse = await page.goto(`https://goout.net/cs/listky/${eventLinkName}/${eventLinkCode}?min=true`);
         }
     }
@@ -107,7 +137,7 @@ Instance: ${instanceId}
     try {
         await page.screenshot({
             fullPage: true,
-            path: `temp/screenshots/${eventLinkName}-${eventLinkCode}-${instanceId}-ok-${reloadIndex}.png`,
+            path: `temp/screenshots/${instanceId}-${eventLinkName}-${eventLinkCode}-${instanceRandomId}-ok-${reloadIndex}.png`,
         })
     } catch (e) {
         // Ignore error

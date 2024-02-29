@@ -61,7 +61,8 @@ const RESERVE_EXECUTOR_TEMPLATE_PATH = 'executors/reserve.exec.template.mjs';
                 .replace('<EVENT_LINK_CODE>', event.linkCode)
                 .replace('<EVENT_DATETIME>', event.dateTime)
                 .replace('\'<NUMBER_OF_SEATS_TO_RESERVE>\'', event.numberOfSeatsToReserve)
-                .replace('\'<PRIORITIZATION_FILE_PATH>\'', event.prioritizationFilePath ? `'${event.prioritizationFilePath}'` : null);
+                .replace('\'<PRIORITIZATION_FILE_PATH>\'', event.prioritizationFilePath ? `'${event.prioritizationFilePath}'` : null)
+                .replace('\'<INSTANCE_ID>\'', id);
 
             const reserveExecutorFileName = `executors/reserve-${id}-${event.linkName}-${event.linkCode}.reserve.exec.mjs`;
             fs.writeFileSync(reserveExecutorFileName, reserveExecutorContents);
