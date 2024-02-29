@@ -39,3 +39,10 @@ or run specific reservation executor:
 ```sh
 node executors/<name>.reserve.exec.mjs
  ```
+
+## Interaction using CLI
+
+When executor is running, you can interact with it using CLI. You can use following key combinations to:
+
+* `CTRL + C` - stop the executor
+* `R` - reload the executor (in case that seats are pre-reserved, browser with such instance should stay opened and new browser should be started for new instance)

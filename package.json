@@ -2,7 +2,7 @@
   "type": "module",
   "name": "gout_zjdc_automated_seat_reservation",
   "version": "1.0.0",
-    "description": "Automated seat reservation for GoOut portal with optimization for ZJDC theatre.",
+  "description": "Automated seat reservation for GoOut portal with optimization for ZJDC theatre.",
   "author": "Bedřich Schindler <bedrich.schindler@gmail.com>",
   "license": "ISC",
   "engines": {
@@ -17,5 +17,8 @@
     "createReserveExecutors": "node executors/createReserveExecutors.exec.mjs",
     "list": "node executors/list.exec.mjs",
     "runReserveExecutors": "sh scripts/run-all-executors.sh"
+  },
+  "dependencies": {
+    "readline": "^1.3.0"
   }
 }

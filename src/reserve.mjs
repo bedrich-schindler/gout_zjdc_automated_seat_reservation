@@ -1,4 +1,5 @@
 import { chromium } from '@playwright/test';
+import readline from 'readline';
 import {
     TS_IN_QUEUE,
     TS_LOADING,
@@ -66,13 +67,47 @@ Seats to reserve limit: ${NUMBER_OF_SEATS_TO_RESERVE_LIMIT}
 Instance: #${instanceId} (#${instanceRandomId})
 ==============================
     `);
+    const url = `https://goout.net/cs/listky/${eventLinkName}/${eventLinkCode}?min=true`;
 
     // Open event page
-    let pageResponse = await page.goto(`https://goout.net/cs/listky/${eventLinkName}/${eventLinkCode}?min=true`);
+    let pageResponse = await page.goto(url);
 
-    // Run loop until tickets are ready to buy
+    // Handle user input
+    let stopFlag = false;
+    readline.emitKeypressEvents(process.stdin);
+    process.stdin.setRawMode(true);
+    process.stdin.on('keypress', (chunk, key) => {
+        if (stopFlag) {
+            return;
+        }
+
+        if (key.name === 'c' && key.ctrl === true) {
+            console.log('User input detected: Stopping executor');
+            process.exit();
+        }
+
+        if (key.name === 'r') {
+            console.log('User input detected: Restarting executor');
+            try {
+                stopFlag = true;
+                reserve(
+                    eventTitle,
+                    eventLinkName,
+                    eventLinkCode,
+                    eventDateTime,
+                    numberOfSeatsToReserve,
+                    prioritization,
+                    instanceId,
+                )
+            } catch (e) {
+                console.error('User input exception:', e);
+            }
+        }
+    });
+
+    // Run loop until tickets are ready to buy or until user stopped this instance
     let reloadIndex = -1;
-    while (true) {
+    while (!stopFlag) {
         try {
             const ticketStatus = await getTicketStatus(page, pageResponse);
             console.log(`Status: ${ticketStatus} [${reloadIndex + 1}]`);
@@ -130,8 +165,17 @@ Instance: #${instanceId} (#${instanceRandomId})
 
             console.error('Status: Starting new page');
             page = await browser.newPage(PAGE_CONFIGURATION);
-            pageResponse = await page.goto(`https://goout.net/cs/listky/${eventLinkName}/${eventLinkCode}?min=true`);
+            pageResponse = await page.goto(url);
         }
+    }
+
+    if (stopFlag) {
+        try {
+            await browser.close();
+        } catch (e) {
+            // Ignore error
+        }
+        return;
     }
 
     try {
